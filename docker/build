@@ -1,4 +1,4 @@
 #!/bin/bash
 
-docker build -t mmdetextended docker/
+docker build -t mmdetextended -f docker/Dockerfile .
 

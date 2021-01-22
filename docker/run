@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -e
+
+IMAGE="mmdetextended"
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
+DOCKER_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+REPO_ROOT="$( cd -P "$( dirname "$DOCKER_DIR" )" && pwd )"
+
+WORKDIR="/opt/mmdetextended"
+NOTEBOOKS_DIR="${REPO_ROOT}/notebooks"
+DATA_DIR="${REPO_ROOT}/data"
+TORCH_HOME=/mnt/inkers1TB/INKERS/Satyajit/DSHNet/pytorch_home
+
+DOCKER_VERSION=$(docker version -f "{{.Server.Version}}")
+DOCKER_MAJOR=$(echo "$DOCKER_VERSION"| cut -d'.' -f 1)
+
+if [ "${DOCKER_MAJOR}" -ge 19 ]; then
+    runtime="--gpus=all"
+else
+    runtime="--runtime=nvidia"
+fi
+
+# Parse options using scheme in
+# https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+    case $key in
+        --gpu)
+        RUNTIME=$runtime
+        shift # past argument
+        ;;
+        --name)
+        shift
+        NAME="--name $1"
+        shift
+        ;;
+        --dev)
+        WORKDIR="/opt/src"
+        shift
+        ;;
+        --jupyter)
+        CMD=(jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root --notebook-dir=/opt/notebooks)
+        shift
+        ;;
+        *)    # unknown option
+        POSITIONAL+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+docker run -it --rm ${RUNTIME} ${NAME} \
+    -v ${REPO_ROOT}:/opt/src \
+    -v ${NOTEBOOKS_DIR}:/opt/notebooks \
+    -v ${DATA_DIR}:/opt/data \
+    -w ${WORKDIR} \
+    --env TORCH_HOME=/opt/torch_home \
+    -p 8886:8888 \
+    --ipc=host \
+    ${IMAGE} "${CMD[@]}"

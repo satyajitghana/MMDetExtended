@@ -1,0 +1,13 @@
+__pycache__
+
+# data
+data/
+
+# unknown
+.fuse*
+
+# logs
+work_dirs
+
+# notebook checkpoints
+notebooks/.ipynb_checkpoints

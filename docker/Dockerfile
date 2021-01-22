@@ -24,14 +24,13 @@ RUN pip install jupyterlab nb-black
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - && apt-get install -y nodejs
 RUN jupyter labextension install @axlair/jupyterlab_vim @arbennett/base16-nord
 
-# Install MMDetection
-RUN conda clean --all
-RUN git clone https://github.com/open-mmlab/mmdetection.git /opt/mmdetection
-WORKDIR /opt/mmdetection
-ENV FORCE_CUDA="1"
-RUN pip install -r requirements/build.txt
-RUN pip install --no-cache-dir -e .
-
 # Install TIMM
 RUN pip install timm
 
+# Install MMDetection dependencies
+RUN conda clean --all
+WORKDIR /opt/mmdetextended
+COPY . .
+ENV FORCE_CUDA="1"
+RUN pip install -r requirements/build.txt
+RUN pip install --no-cache-dir -e .
