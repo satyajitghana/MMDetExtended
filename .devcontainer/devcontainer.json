@@ -1,0 +1,4 @@
+{
+    "image": "mmdetextended:latest",
+    "forwardPorts": [8888]
+}
